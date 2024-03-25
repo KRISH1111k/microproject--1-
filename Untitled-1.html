@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="transactionApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Transaction History Log</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body>
+
+<div ng-controller="transactionController">
+    <h2>Search Transaction History:</h2>
+    <input type="text" ng-model="searchText" placeholder="Search transaction amount">
+    <button ng-click="searchTransaction()">Search</button>
+    <br><br>
+
+    <input type="radio" ng-model="transaction.type" value="credited"> Credited
+    <input type="radio" ng-model="transaction.type" value="debited"> Debited
+    <br><br>
+
+    <input type="text" ng-model="transaction.amount" placeholder="Enter transaction amount">
+    <button ng-click="addTransaction()">Add Transaction</button>
+
+    <h2>Transaction History:</h2>
+    <ul>
+        <li ng-repeat="transaction in filteredTransactions">
+            Type: {{transaction.type}}, Amount: {{transaction.amount}}, Date: {{transaction.date}}
+        </li>
+    </ul>
+
+    <button ng-click="checkBalance()">Check Balance</button>
+    <p ng-show="balanceChecked">Balance: {{balance}}</p>
+
+    <p ng-show="noResults">No results found.</p>
+</div>
+
+<script>
+    var app = angular.module('transactionApp', []);
+    app.controller('transactionController', function($scope) {
+        $scope.transactions = [];
+        $scope.transaction = {};
+        $scope.transactionLog = [];
+        $scope.filteredTransactions = [];
+        $scope.balanceChecked = false;
+        $scope.balance = 0;
+        $scope.noResults = false;
+
+        $scope.addTransaction = function() {
+            var newTransaction = {
+                type: $scope.transaction.type,
+                amount: $scope.transaction.amount,
+                date: new Date()
+            };
+            $scope.transactions.push(newTransaction);
+            $scope.transaction = {};
+            $scope.transactionLog.push({ message: 'Transaction added', data: newTransaction });
+            console.log('Transaction added:', newTransaction);
+        };
+
+        $scope.searchTransaction = function() {
+            $scope.filteredTransactions = [];
+            $scope.noResults = true;
+            angular.forEach($scope.transactions, function(transaction) {
+                if (transaction.amount == $scope.searchText) {
+                    $scope.filteredTransactions.push(transaction);
+                    $scope.noResults = false;
+                }
+            });
+        };
+
+        $scope.checkBalance = function() {
+            var creditedAmount = 0;
+            var debitedAmount = 0;
+            angular.forEach($scope.transactions, function(transaction) {
+                if (transaction.type === 'credited') {
+                    creditedAmount += parseFloat(transaction.amount);
+                } else if (transaction.type === 'debited') {
+                    debitedAmount += parseFloat(transaction.amount);
+                }
+            });
+            $scope.balance = creditedAmount - debitedAmount;
+            $scope.balanceChecked = true;
+        };
+    });
+</script>
+
+</body>
+</html>
